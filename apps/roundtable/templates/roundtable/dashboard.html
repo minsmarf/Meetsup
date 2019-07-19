@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block dashboard %}
+    <head>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        {% load static %}
+        <script src="{% static 'roundtable/js/create.js' %}"></script>
+        <style>
+            .btn-primary {
+                background-color: #0C2E8A;
+                color: #50D8AF;
+            }
+
+        </style>
+    </head>
+
+    <body>
+    <div class="mt-5">
+        <h1 class="m-3" style="color:#0C2E8A">Hello {{ user.first_name }}!</h1>
+        {% if events %}
+            <h2 class="m-3" style="color:#0C2E8A">Here are your upcoming events:</h2>
+
+            {% for event in events %}
+                <div class="m-3 p-3 rounded-top wow fadeInRight"
+                     style="background-image: url({{ event.restaurants.first.image_url }}); background-size:cover">
+                    <a class="restaurant-header" data-toggle="collapse" href="#event{{ event.id }}">
+                        <div class="m-3 p-1">
+                            <div class="row">
+                                <h1 class="rounded p-2"
+                                    style="color:#0C2E8A; background-color:#50D8AF">{{ event.title }}</h2>
+                            </div>
+                            <div class="row" style="color:#50D8AF; text-shadow: 2px 2px 2px #0C2E8A ">
+                                <h2 class="col-sm-6 text-left">{{ event.location }}</h2>
+                                <h2 class="col-sm-6 text-right">{{ event.time }}</h2>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="m-1 p-1 rounded-top collapse" id="event{{ event.id }}"
+                         style="background: linear-gradient(to bottom, #50D8AF, #0C2E8A)">
+                        <div class="p-3 rounded-top" style="background-color: #50D8AF">
+                            <table class="table table-striped table-small">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Score</th>
+                                    {% for guest in event.users_who_join.all %}
+                                        {% if guest.id != user.id %}
+                                        <th class="d-none d-md-table-cell">{{ guest.first_name }}</th>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <th><span class="text-danger">{{ user.first_name }}</span></th>
+
+                                </tr>
+                                </thead>
+                                <tbody >
+                                {% for rest in event.restaurants.all %}
+                                    <tr class="wow fadeInLeft">
+                                        <td>
+                                            <div style="background-image: url({{ rest.image_url }}); background-size:cover; height:16em"
+                                                 class="p-5">
+                                                <h3 class="rounded p-1"
+                                    style="color:#0C2E8A; background-color:#50D8AF; display:inline;">{{ rest.name }}</h3>
+                                                <br>
+                                                <br>
+                                                <a class="btn btn-danger"  target="_blank" href="{{rest.url}}">Check on Yelp</a>
+                                            </div>
+                                        </td>
+                                        <td id="rate-average-{{event.id}}-{{rest.id}}"></td>
+                                        {% for guest in event.users_who_join.all %}
+                                            {% if guest.id != user.id %}
+                                            <td class="d-none d-md-table-cell"> 
+                                                {% for rating in guest.ratings.all %}
+                                                    {% if rating.restaurant.id == rest.id %}
+                                                        {% if rating.rating == 2 %}
+                                                        <i class="far fa-heart fa-2x my-2"></i>
+                                                        {% endif %}
+                                                        {% if rating.rating == 1 %}
+                                                        <i class="far fa-thumbs-up fa-2x my-2"></i>
+                                                        {% endif %}
+                                                        {% if rating.rating == 0 %}
+                                                        <i class="far fa-check-square fa-2x my-2"></i>
+                                                        {% endif %}
+                                                        {% if rating.rating == -1 %}
+                                                        <i class="far fa-thumbs-down fa-2x my-2"></i>
+                                                        {% endif %}
+                                                        {% if rating.rating == -5 %}
+                                                        <i class="fas fa-ban fa-2x my-2"></i>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <td>
+                                            <button class="hidden rate-button" style="background: transparent; border: none !important; display: block; " value="{{event.id}},{{rest.id}},{{user.id}},2">
+                                                <i class="far fa-heart fa-2x my-2"></i>
+                                            </button>
+                                            <button class="hidden rate-button" style="background: transparent; border: none !important; display: block;" value="{{event.id}},{{rest.id}},{{user.id}},1">
+                                                <i class="far fa-thumbs-up fa-2x my-2"></i>
+                                            </button>
+                                            <button class="hidden rate-button" style="background: transparent; border: none !important; display: block;" value="{{event.id}},{{rest.id}},{{user.id}},0">
+                                                <i class="far fa-check-square fa-2x my-2"></i>
+                                            </button>
+                                            <button class="hidden rate-button" style="background: transparent; border: none !important; display: block;" value="{{event.id}},{{rest.id}},{{user.id}},-1">
+                                                <i class="far fa-thumbs-down fa-2x my-2"></i>
+                                            </button>
+                                            <button class="hidden rate-button" style="background: transparent; border: none !important; display: block;" value="{{event.id}},{{rest.id}},{{user.id}},-5">
+                                                <i class="fas fa-ban fa-2x my-2"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <div class="form-grid">
+                                <form action="/link_restaurant/{{ event.id }}" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-row mb-2">
+                                        <input type="text" class="form-control col mb-2 mr-1" name="rest" id="restaurant_url"
+                                               placeholder="Paste restaurant_url here"
+                                               data-rule="minlen:8"
+                                               data-msg="Please enter at least 8 chars of subject"/>
+                                        <div class="validation"></div>
+                                        <button type="submit" class="btn btn-primary col-sm-2 mr-3 mb-2">Suggest a Restaurant</button>
+                                        {% if event.hosted_by == user %}
+                                        <a href="/events/edit/{{ event.id }}" class="btn btn-primary col-sm-2 mr-3 mb-2">Edit Event Details</a>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                                <form action="/link_guest/{{ event.id }}" method="post">
+                                    {% csrf_token %}
+                                    <div class="form-row mb-2">
+                                        <input type="text" class="form-control col mb-2 mr-1" name="guest_name" placeholder="Enter your friend's name here"/>
+                                        <div class="validation"></div>
+                                        <button type="submit" class="btn btn-primary col-sm-2 mr-3 mb-2">Invite a friend</button>
+                                        <a href="/invite/{{ event.id }}" class="btn btn-primary col-sm-2 mr-3 mb-2">Get Invite Link</a>
+                                        {% if event.hosted_by == user %}
+                                        <a href="/process_delete/{{ event.id }}" class="btn btn-danger col-sm-2 mr-3 mb-2">Cancel Event</a>
+                                        {% endif %}
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h2 class="m-3" style="color:#0C2E8A">You have no upcoming events, how about <a href="/events/new" style="color:#50D8AF">creating one?</a></h2>
+        {% endif %}
+    </div>
+    </body>
+{% endblock %}

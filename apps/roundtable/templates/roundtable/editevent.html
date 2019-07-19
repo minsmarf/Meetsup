@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block dashboard %}
+    <head>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        {% load static %}
+        <script src="{% static 'roundtable/js/create.js' %}"></script>
+    </head>
+
+    <body>
+    <div class="row mt-5">
+        <div class="container d-inline-block col-sm-6">
+            <form action="/process_update/{{ event.id }}" method="post" id="new_event">
+                {% csrf_token %}
+                <div class="form-group row">
+                    <label for="title" class="col-sm-3 col-form-label">Title</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="title" name="title" autocomplete="off"
+                               value="{{ event.title }}">
+                        {% if messages %}
+                            <div class="messages text-danger">
+                                {% for message in messages %}
+                                    {% if message.tags == 'title error' %}
+                                        <small>{{ message }}</small>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+                <div class="form-group row">
+                    <label for="time" class="col-sm-3 col-form-label">Date</label>
+                    <div class="col-sm-9">
+                        <input type="datetime-local" class="form-control" id="time" name="time"
+                               value="{{ event.time|date:"Y-m-d" }}T{{ event.time|date:"H:i:s" }}"
+                               autocomplete="off">
+                        {% if messages %}
+                            <div class="messages text-danger">
+                                {% for message in messages %}
+                                    {% if message.tags == 'time error' %}
+                                        <small>{{ message }}</small>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="location" class="col-sm-3 col-form-label">Location</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" id="location" name="location" autocomplete="off"
+                               value="{{ event.location }}">
+                        {% if messages %}
+                            <div class="messages text-danger">
+                                {% for message in messages %}
+                                    {% if message.tags == 'location error' %}
+                                        <small>{{ message }}</small>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group" id="field">
+                    <div id="field1">
+                        <div class="form-group">
+                            <input type="text" class="form-control" name="rest1" id="restaurant_url"
+                                   placeholder="Paste restaurant_url here"
+                                   data-rule="minlen:4"
+                                   data-msg="Please enter at least 8 chars of subject"/>
+                            <div class="validation"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <textarea class="form-control" name="message" rows="5" data-rule="required"
+                              data-msg="Please write something for us" placeholder="Message"
+                              name="message">{{ event.message }}</textarea>
+                    <div class="validation"></div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success">Update Event</button>
+                    <button id="add-more" name="add-more" class="btn btn-primary">Add Another Restaurant</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="container d-inline-block col-sm-5">
+            <label for="food_type" class="col-sm-3 col-form-label">Food Type</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control" id="food_type" name="food_type" autocomplete="off">
+                <button type="button" class="btn btn-primary mt-3" id="search_rest">Search</button>
+            </div>
+            <div class="container mt-5" id="rests_map">
+                {% if 'search_url' in request.session %}
+                    <iframe id="google-map" width="100%" height="380" frameborder="0"
+                            style="border:0"
+                            src="{{ request.session.search_url }}"
+                            allowfullscreen>
+                    </iframe>
+                {% endif %}
+                {% if 'top_restaurants' in request.session %}
+                    {% for rest in request.session.top_restaurants %}
+                        <div class="container-fluid yelp-restaurants">
+                            <div class="card">
+                                <img src="{{ rest.image_url }}" class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ rest.name }}</h5>
+                                    <a href="{{ rest.url }}" class="btn btn-primary" target="_blank">Check on yelp</a>
+                                    <button name="add-more" class="add-with-url btn btn-primary" value="{{ rest.url }}">
+                                        Add to list
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock %}
+
